@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Шторки с заданиями</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #f0f0f0;
+
+  /* стабильная мобильная центровка */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  min-height: 100vh;
+  padding: 20px;
+
+  overflow-x: hidden;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+
+  width: 100%;
+  max-width: 500px;
+}
+
+/* планшеты */
+@media (max-width: 700px) {
+  .container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* маленькие телефоны */
+@media (max-width: 420px) {
+  body {
+    align-items: flex-start;
+  }
+
+  .container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.curtain {
+  aspect-ratio: 3 / 2;
+  border-radius: 12px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  padding: 8px;
+
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.curtain::before,
+.curtain::after {
+  content: '';
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  transition: transform 0.5s;
+}
+
+.curtain::before { left: 0; }
+.curtain::after { right: 0; }
+
+.curtain.open::before {
+  transform: translateX(-100%);
+}
+
+.curtain.open::after {
+  transform: translateX(100%);
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+
+  display: none;
+  justify-content: center;
+  align-items: center;
+
+  padding: 15px;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+
+  width: 100%;
+  max-width: 400px;
+
+  text-align: center;
+}
+
+button {
+  margin-top: 15px;
+  padding: 10px 15px;
+  font-size: 16px;
+
+  border: none;
+  border-radius: 8px;
+  background: #3498db;
+  color: white;
+}
+
+.hidden {
+  display: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container" id="container"></div>
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <p id="task"></p>
+    <button onclick="closeModal()">Закрыть</button>
+  </div>
+</div>
+
+<script>
+const tasks = [
+"Составьте график основных событий прочитанной книги, расставляя временные рамки",
+"Выпишите и поделитесь 5ю цитатами из прочитанного произведения",
+"Расскажите, какие 5 вещей вас удивили в прочитанном произведении",
+"Проследите путь развития характера героя на протяжении всего произведения и озвучьте его на встрече",
+"Подобрать и продемонстрировать актеров, которые могли бы сыграть главных героев в гипотетической экранизации",
+"Раскройте портрет главного героя выбранной книги"
+];
+
+let available = [...tasks];
+let current = null;
+let locked = false;
+
+function shuffle(array) {
+  return array.sort(() => Math.random() - 0.5);
+}
+
+function createCurtains() {
+  const container = document.getElementById('container');
+  container.innerHTML = '';
+
+  const colors = ['#e74c3c','#3498db','#2ecc71','#9b59b6','#f39c12','#1abc9c'];
+
+  shuffle(available).forEach((task, index) => {
+    const div = document.createElement('div');
+    div.className = 'curtain';
+    div.style.background = colors[index % colors.length];
+    div.dataset.task = task;
+
+    div.onclick = () => openCurtain(div);
+
+    container.appendChild(div);
+  });
+}
+
+function openCurtain(el) {
+  if (locked) return;
+  locked = true;
+
+  el.classList.add('open');
+  current = el;
+
+  setTimeout(() => {
+    document.getElementById('task').innerText = el.dataset.task;
+    document.getElementById('modal').style.display = 'flex';
+  }, 500);
+}
+
+function closeModal() {
+  document.getElementById('modal').style.display = 'none';
+
+  current.classList.add('hidden');
+  available = available.filter(t => t !== current.dataset.task);
+
+  locked = false;
+
+  if (available.length === 0) {
+    available = [...tasks];
+    setTimeout(createCurtains, 400);
+  }
+}
+
+createCurtains();
+</script>
+
+</body>
+</html>
